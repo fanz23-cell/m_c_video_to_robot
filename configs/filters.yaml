@@ -1,0 +1,14 @@
+filter:
+  enabled: true
+  type: savgol
+  window_length: 9
+  polyorder: 3
+
+transition:
+  start_seconds: 1.0
+  end_seconds: 1.0
+
+limits:
+  use_robot_limits: true
+  velocity_margin: 0.8
+  acceleration_limit: 80.0

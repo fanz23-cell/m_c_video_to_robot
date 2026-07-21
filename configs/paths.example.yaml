@@ -1,0 +1,8 @@
+paths:
+  isaac_root_env: MINDBOT_ISAAC_ROOT
+  isaac_root_default: "../Mind bot Isaac Sim"
+  input_videos: "data/input_videos"
+  outputs: "outputs"
+  gmr_build: "build/mindbot_gmr"
+  gvhmr_submodule: "third_party/GVHMR"
+  gmr_submodule: "third_party/GMR"

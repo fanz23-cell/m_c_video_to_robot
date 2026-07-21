@@ -1,0 +1,3 @@
+# Installed by scripts/bootstrap_venvs.sh from third_party/GVHMR/requirements.txt.
+# The upstream file pins CUDA PyTorch and pytorch3d wheels for Python 3.10.
+-e ./third_party/GVHMR

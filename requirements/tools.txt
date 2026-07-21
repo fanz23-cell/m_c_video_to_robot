@@ -1,0 +1,5 @@
+numpy
+pyyaml
+pytest
+rich
+scipy
