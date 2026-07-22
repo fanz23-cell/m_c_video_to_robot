@@ -17,9 +17,22 @@ fi
 create_venv() {
   local name="$1"
   local python_bin="$2"
+  if ! command -v "${python_bin}" >/dev/null 2>&1; then
+    echo "[ERROR] Python interpreter not found for ${name}: ${python_bin}" >&2
+    return 1
+  fi
+  local requested_version
+  requested_version="$("${python_bin}" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
   if [ ! -x "${name}/bin/python" ]; then
     echo "[INFO] Creating ${name}"
     "${python_bin}" -m venv "${name}"
+  else
+    local existing_version
+    existing_version="$("${REPO_ROOT}/${name}/bin/python" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
+    if [ "${existing_version}" != "${requested_version}" ]; then
+      echo "[INFO] Recreating ${name}: existing Python ${existing_version}, requested ${requested_version}"
+      "${python_bin}" -m venv --clear "${name}"
+    fi
   fi
   "${REPO_ROOT}/${name}/bin/python" -m pip install --upgrade pip setuptools wheel
 }
@@ -49,6 +62,9 @@ if [ "${gvhmr_version}" != "3.10" ]; then
 fi
 
 if [ "${gvhmr_ready}" -eq 1 ]; then
+  echo "[INFO] Pre-installing GVHMR legacy build dependencies"
+  "${REPO_ROOT}/.venv-gvhmr/bin/python" -m pip install numpy==1.23.5 scipy setuptools wheel
+  "${REPO_ROOT}/.venv-gvhmr/bin/python" -m pip install --no-build-isolation chumpy==0.70
   echo "[INFO] Installing GVHMR dependencies"
   "${REPO_ROOT}/.venv-gvhmr/bin/python" -m pip install -r third_party/GVHMR/requirements.txt
   "${REPO_ROOT}/.venv-gvhmr/bin/python" -m pip install -e third_party/GVHMR

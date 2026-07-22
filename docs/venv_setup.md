@@ -34,3 +34,7 @@ If your system `python3` is not Python 3.10, install a Python 3.10 interpreter w
 ```bash
 PYTHON_GVHMR=python3.10 ./scripts/bootstrap_venvs.sh
 ```
+
+If `.venv-gvhmr` was already created with a different Python version, the bootstrap script recreates that venv with the requested interpreter.
+
+GVHMR depends on the legacy `chumpy` package. The bootstrap script installs it with `--no-build-isolation` before applying the official upstream requirements because the package's old build script expects `pip` to be importable during setup.
