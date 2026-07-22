@@ -1,13 +1,19 @@
 from __future__ import annotations
 
 import argparse
+import sys
 import time
 from pathlib import Path
 
 import numpy as np
 
-from .motion_format import load_motion
-from .robot_asset import CONTROLLED_JOINT_NAMES
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from m_c_video_to_robot.motion_format import load_motion
+    from m_c_video_to_robot.robot_asset import CONTROLLED_JOINT_NAMES
+else:
+    from .motion_format import load_motion
+    from .robot_asset import CONTROLLED_JOINT_NAMES
 
 
 def _sample_motion(timestamps: np.ndarray, positions: np.ndarray, t: float) -> np.ndarray:
@@ -23,7 +29,7 @@ def _sample_motion(timestamps: np.ndarray, positions: np.ndarray, t: float) -> n
     return (1.0 - alpha) * positions[left] + alpha * positions[right]
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args() -> tuple[argparse.Namespace, list[str]]:
     parser = argparse.ArgumentParser(description="Replay MindBot joint motion in the official Isaac Lab environment.")
     parser.add_argument("--motion", required=True, type=Path)
     parser.add_argument("--task", default="Mindbot-DualArmWaist-Realsense-Play-v0")
@@ -35,17 +41,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--disable_fabric", action="store_true", default=False)
     parser.add_argument("--real-time", action="store_true", default=True)
     parser.add_argument("--no-real-time", action="store_false", dest="real_time")
-    return parser.parse_args()
+    return parser.parse_known_args()
 
 
 def main() -> None:
-    args_cli = parse_args()
+    args_cli, app_argv = parse_args()
 
     from isaaclab.app import AppLauncher
 
     app_parser = argparse.ArgumentParser(add_help=False)
     AppLauncher.add_app_launcher_args(app_parser)
-    app_args, _ = app_parser.parse_known_args()
+    app_args, _ = app_parser.parse_known_args(app_argv)
     for key, value in vars(args_cli).items():
         setattr(app_args, key, value)
     if "Realsense" in args_cli.task and hasattr(app_args, "enable_cameras"):

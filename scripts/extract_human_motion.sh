@@ -4,6 +4,10 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${REPO_ROOT}"
 
+export MPLCONFIGDIR="${MPLCONFIGDIR:-/tmp/m_c_video_to_robot_matplotlib}"
+export YOLO_CONFIG_DIR="${YOLO_CONFIG_DIR:-/tmp/m_c_video_to_robot_ultralytics}"
+export TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD="${TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD:-1}"
+
 video=""
 static_camera=0
 use_dpvo=0
@@ -52,7 +56,7 @@ stem="${stem%.*}"
 output_root="outputs/${stem}/gvhmr"
 mkdir -p "${output_root}"
 
-args=(tools/demo/demo.py "--video=${REPO_ROOT}/${video}" "--output_root=${REPO_ROOT}/${output_root}")
+args=(tools/demo/demo.py "--video=${REPO_ROOT}/${video}" "--output_root=${REPO_ROOT}/${output_root}" "--no_render")
 if [ "${static_camera}" -eq 1 ]; then
   args+=("--static_cam")
 fi

@@ -51,6 +51,11 @@ ASSETS = [
         "Register and download SMPL-X from https://smpl-x.is.tue.mpg.de/",
         "./scripts/retarget_to_mindbot.sh --gvhmr-output outputs/test/gvhmr/test/hmr4d_results.pt",
     ),
+    RequiredAsset(
+        "third_party/GMR/assets/body_models/smplx/SMPLX_NEUTRAL.npz",
+        "Register and download SMPL-X from https://smpl-x.is.tue.mpg.de/",
+        "./scripts/retarget_to_mindbot.sh --gvhmr-output outputs/test/gvhmr/test/hmr4d_results.pt",
+    ),
 ]
 
 

@@ -51,9 +51,9 @@ if [ ! -x "${launcher}" ]; then
   exit 1
 fi
 
-if [ ! -d "${isaac_root}/.venv" ] && [ -z "${VIRTUAL_ENV:-}" ]; then
-  echo "[ERROR] Official Isaac environment does not expose a venv and no venv is active." >&2
-  echo "Create or activate the official Isaac venv, then rerun this command." >&2
+if [ ! -d "${isaac_root}/.venv" ] && [ -z "${VIRTUAL_ENV:-}" ] && [ -z "${CONDA_PREFIX:-}" ]; then
+  echo "[ERROR] Official Isaac environment does not expose a venv and no Python env is active." >&2
+  echo "Create or activate the official Isaac Python env, then rerun this command." >&2
   exit 1
 fi
 

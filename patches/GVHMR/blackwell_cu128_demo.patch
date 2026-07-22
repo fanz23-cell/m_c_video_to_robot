@@ -1,0 +1,66 @@
+diff --git a/hmr4d/configs/__init__.py b/hmr4d/configs/__init__.py
+index 3079c6e..84638e6 100644
+--- a/hmr4d/configs/__init__.py
++++ b/hmr4d/configs/__init__.py
+@@ -18,0 +19,7 @@ def register_store_gvhmr():
++def register_store_gvhmr_demo():
++    """Register only the config groups needed by tools/demo/demo.py."""
++    import hmr4d.model.gvhmr.gvhmr_pl_demo
++    import hmr4d.model.gvhmr.utils.endecoder
++    import hmr4d.network.gvhmr.relative_transformer
++
++
+diff --git a/hmr4d/utils/geo_transform.py b/hmr4d/utils/geo_transform.py
+index 028cc35..fd7d430 100644
+--- a/hmr4d/utils/geo_transform.py
++++ b/hmr4d/utils/geo_transform.py
+@@ -7 +6,0 @@ from pytorch3d.transforms import matrix_to_quaternion, quaternion_to_axis_angle,
+-import pytorch3d.ops.knn as knn
+@@ -296 +295,6 @@ def get_nearby_points(points, query_verts, padding=0.0, p=1):
+-        squared_dist, _, _ = knn.knn_points(points[None], query_verts[None], K=1, return_nn=False)
++        try:
++            from pytorch3d.ops import knn as knn_ops
++
++            squared_dist, _, _ = knn_ops.knn_points(points[None], query_verts[None], K=1, return_nn=False)
++        except ImportError:
++            squared_dist = torch.cdist(points[None], query_verts[None]).square().amin(dim=-1, keepdim=True)
+diff --git a/tools/demo/demo.py b/tools/demo/demo.py
+index a10fb64..927917b 100644
+--- a/tools/demo/demo.py
++++ b/tools/demo/demo.py
+@@ -12 +12 @@ from pytorch3d.transforms import quaternion_to_matrix
+-from hmr4d.configs import register_store_gvhmr
++from hmr4d.configs import register_store_gvhmr_demo
+@@ -30 +29,0 @@ from hmr4d.utils.smplx_utils import make_smplx
+-from hmr4d.utils.vis.renderer import Renderer, get_global_cameras_static, get_ground_params_from_points
+@@ -54,0 +54 @@ def parse_args_to_cfg():
++    parser.add_argument("--no_render", "--no-render", action="store_true", help="Skip GVHMR preview video rendering")
+@@ -77 +77 @@ def parse_args_to_cfg():
+-        register_store_gvhmr()
++        register_store_gvhmr_demo()
+@@ -95 +95 @@ def parse_args_to_cfg():
+-    return cfg
++    return cfg, args.no_render
+@@ -203,0 +204,2 @@ def render_incam(cfg):
++    from hmr4d.utils.vis.renderer import Renderer
++
+@@ -245,0 +248,2 @@ def render_global(cfg):
++    from hmr4d.utils.vis.renderer import Renderer, get_global_cameras_static, get_ground_params_from_points
++
+@@ -307 +311 @@ if __name__ == "__main__":
+-    cfg = parse_args_to_cfg()
++    cfg, no_render = parse_args_to_cfg()
+@@ -330,5 +334,8 @@ if __name__ == "__main__":
+-    render_incam(cfg)
+-    render_global(cfg)
+-    if not Path(paths.incam_global_horiz_video).exists():
+-        Log.info("[Merge Videos]")
+-        merge_videos_horizontal([paths.incam_video, paths.global_video], paths.incam_global_horiz_video)
++    if no_render:
++        Log.info("[Render] Skipped.")
++    else:
++        render_incam(cfg)
++        render_global(cfg)
++        if not Path(paths.incam_global_horiz_video).exists():
++            Log.info("[Merge Videos]")
++            merge_videos_horizontal([paths.incam_video, paths.global_video], paths.incam_global_horiz_video)

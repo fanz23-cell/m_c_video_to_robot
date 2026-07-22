@@ -9,6 +9,7 @@ __pycache__/
 outputs/
 build/
 1/
+video/
 data/input_videos/*
 !data/input_videos/.gitkeep
 

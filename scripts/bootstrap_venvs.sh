@@ -67,7 +67,20 @@ if [ "${gvhmr_ready}" -eq 1 ]; then
   "${REPO_ROOT}/.venv-gvhmr/bin/python" -m pip install --no-build-isolation chumpy==0.70
   echo "[INFO] Installing GVHMR dependencies"
   "${REPO_ROOT}/.venv-gvhmr/bin/python" -m pip install -r third_party/GVHMR/requirements.txt
+  GVHMR_TORCH_VERSION="${GVHMR_TORCH_VERSION:-2.7.1+cu128}"
+  GVHMR_TORCHVISION_VERSION="${GVHMR_TORCHVISION_VERSION:-0.22.1+cu128}"
+  GVHMR_TORCH_INDEX_URL="${GVHMR_TORCH_INDEX_URL:-https://download.pytorch.org/whl/cu128}"
+  current_gvhmr_torch="$("${REPO_ROOT}/.venv-gvhmr/bin/python" -c 'import torch; print(torch.__version__)' 2>/dev/null || true)"
+  if [ "${current_gvhmr_torch}" != "${GVHMR_TORCH_VERSION}" ]; then
+    echo "[INFO] Installing GVHMR PyTorch ${GVHMR_TORCH_VERSION} for RTX 50 / sm_120 support"
+    "${REPO_ROOT}/.venv-gvhmr/bin/python" -m pip install --upgrade --force-reinstall \
+      "torch==${GVHMR_TORCH_VERSION}" \
+      "torchvision==${GVHMR_TORCHVISION_VERSION}" \
+      --index-url "${GVHMR_TORCH_INDEX_URL}"
+    "${REPO_ROOT}/.venv-gvhmr/bin/python" -m pip install numpy==1.26.4 fsspec==2025.12.0
+  fi
   "${REPO_ROOT}/.venv-gvhmr/bin/python" -m pip install -e third_party/GVHMR
+  ./scripts/apply_gvhmr_patches.sh
 else
   echo "[WARN] Skipping GVHMR dependency install until .venv-gvhmr uses Python 3.10." >&2
 fi

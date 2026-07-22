@@ -135,4 +135,6 @@ def filter_joint_trajectory(
         start_seconds=float(transition_cfg.get("start_seconds", 0.0)),
         end_seconds=float(transition_cfg.get("end_seconds", 0.0)),
     )
+    values = clamp_to_limits(values, lower, upper)
+    values = limit_velocity(values, timestamps, velocity_limits * margin)
     return clamp_to_limits(values, lower, upper)
