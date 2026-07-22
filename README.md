@@ -132,7 +132,7 @@ left_arm_joint_1 ... left_arm_joint_6
 right_arm_joint_1 ... right_arm_joint_6
 ```
 
-Wheel/base commands are not emitted. The waist is locked at `0.0` rad by default because monocular GVHMR global yaw can jump on fixed-base robots. Use `--waist-mode spine_yaw` only when the source video clearly needs body turning.
+Wheel/base commands are not emitted. The waist follows a smoothed torso heading by default, estimated from SMPL-X shoulder and hip geometry so side-facing people make the robot turn its waist. Use `--waist-mode locked` for arm-only debugging, or `--waist-mode spine_yaw` to inspect the raw spine orientation path.
 
 ## Mapping And Smoothing
 

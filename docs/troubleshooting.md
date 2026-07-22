@@ -27,9 +27,9 @@ Reduce wrist orientation weight first, then increase elbow position weight. For 
 
 ## Waist Snaps Near 180 Degrees
 
-The retargeter locks `waist_joint` at `0.0` rad by default. Single-camera GVHMR global yaw can jump when the person turns, the camera moves, or depth is ambiguous, and a fixed-base robot waist makes those jumps very visible.
+The default `--waist-mode torso_heading` estimates waist yaw from SMPL-X shoulder and hip geometry, then smooths it before robot-limit filtering. This follows real body turns without using the noisier per-frame global spine quaternion.
 
-Use `--waist-mode spine_yaw` only for videos where deliberate body turning matters. If that mode snaps, inspect `raw_joint_positions` in `mindbot_motion.npz` and lower the smoothing window in `configs/filters.yaml`.
+Use `--waist-mode locked` for arm-only debugging. Use `--waist-mode spine_yaw` only to inspect the raw spine orientation path; single-camera GVHMR global yaw can jump when the person turns, the camera moves, or depth is ambiguous.
 
 ## Isaac Launcher Fails
 

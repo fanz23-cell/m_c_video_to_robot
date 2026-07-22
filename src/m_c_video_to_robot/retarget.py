@@ -10,8 +10,8 @@ import numpy as np
 import yaml
 
 from .filters import filter_joint_trajectory
-from .gvhmr_loader import extract_yaw_from_human_frames
-from .human_frame_transform import transform_human_frames_to_mindbot_workspace
+from .gvhmr_loader import extract_torso_heading_yaw_from_human_frames, extract_yaw_from_human_frames
+from .human_frame_transform import HUMAN_TO_MINDBOT, transform_human_frames_to_mindbot_workspace
 from .limits import limits_arrays, validate_motion
 from .motion_format import write_motion_bundle
 from .paths import relative_to_repo, repo_path
@@ -89,8 +89,16 @@ def retarget_gvhmr_to_mindbot(args: argparse.Namespace) -> dict[str, Path]:
     end = len(human_frames) if args.end_frame is None else min(args.end_frame, len(human_frames))
     if start >= end:
         raise ValueError(f"Invalid frame range: start={start}, end={end}")
-    human_frames = human_frames[start:end]
-    human_frames, transform_report = transform_human_frames_to_mindbot_workspace(human_frames, robot_model)
+    source_human_frames = human_frames[start:end]
+    if args.waist_mode == "torso_heading":
+        waist_yaw = extract_torso_heading_yaw_from_human_frames(
+            source_human_frames,
+            (limits["waist_joint"].lower, limits["waist_joint"].upper),
+            position_transform=HUMAN_TO_MINDBOT,
+        )
+    else:
+        waist_yaw = None
+    human_frames, transform_report = transform_human_frames_to_mindbot_workspace(source_human_frames, robot_model)
 
     retarget = GMR(
         actual_human_height=None,
@@ -106,7 +114,12 @@ def retarget_gvhmr_to_mindbot(args: argparse.Namespace) -> dict[str, Path]:
 
     raw = np.asarray(raw_rows, dtype=float)
     waist_index = joint_names.index("waist_joint")
-    if args.waist_mode == "locked":
+    if args.waist_mode == "torso_heading":
+        if waist_yaw is None:
+            raise RuntimeError("torso_heading waist mode did not produce a yaw trajectory.")
+        raw[:, waist_index] = waist_yaw
+        waist_note = "waist_joint follows a smoothed torso heading estimated from SMPL-X shoulder and hip geometry."
+    elif args.waist_mode == "locked":
         raw[:, waist_index] = 0.0
         waist_note = "waist_joint is locked at 0.0 rad; monocular GVHMR global yaw is unstable for this fixed-base waist."
     else:
@@ -196,9 +209,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--rebuild-model", action="store_true")
     parser.add_argument(
         "--waist-mode",
-        choices=["locked", "spine_yaw"],
-        default="locked",
-        help="How to drive waist_joint. The default locks the waist because single-camera global yaw is noisy.",
+        choices=["torso_heading", "locked", "spine_yaw"],
+        default="torso_heading",
+        help="How to drive waist_joint. The default tracks smoothed shoulder/hip torso heading.",
     )
     parser.add_argument("--preview", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--verbose", action="store_true")

@@ -6,7 +6,7 @@ filter:
 
 transition:
   start_seconds: 1.0
-  end_seconds: 1.0
+  end_seconds: 0.0
 
 limits:
   use_robot_limits: true

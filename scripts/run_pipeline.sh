@@ -8,7 +8,7 @@ video=""
 static_camera=0
 record=0
 robot="mindbot_dual_arm"
-waist_mode="locked"
+waist_mode="torso_heading"
 replay_args=()
 
 while [ "$#" -gt 0 ]; do

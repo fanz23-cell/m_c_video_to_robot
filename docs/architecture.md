@@ -29,4 +29,4 @@ outputs/<video>/retarget_preview.mp4
 
 ## Control Scope
 
-The first stage controls two six-DOF arms and keeps the waist yaw locked by default. `--waist-mode spine_yaw` can be used for deliberate body-turning videos, but RealSense pitch, wheels, and base motion are held by the official environment defaults.
+The first stage controls two six-DOF arms and one waist yaw joint. The default waist mode is `torso_heading`, which tracks a smoothed shoulder/hip body heading so the robot turns when the person turns. RealSense pitch, wheels, and base motion are held by the official environment defaults.
