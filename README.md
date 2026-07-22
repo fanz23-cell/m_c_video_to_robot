@@ -1,6 +1,6 @@
 # m_c_video_to_robot
 
-Input a normal MP4 of a person, recover 3D human motion with official GVHMR, retarget upper-body motion to the MindBot dual-arm waist robot with official GMR, then replay the named joint trajectory in the existing MindBot Isaac Lab environment.
+Input a normal MP4 of a person, recover 3D human motion with official GVHMR, retarget upper-body motion to the MindBot dual-arm waist robot with official GMR, then replay the named joint trajectory in the existing MindBot Isaac Lab environment. The same robot retargeter can also take Semantic-Gesticulator BVH output, so a text story or speech audio can become a simulated robot gesture.
 
 This stage is simulation-only:
 
@@ -52,13 +52,14 @@ All repository code resolves this path from the repository root. Generated motio
 
 ## Environments
 
-The project uses four separate venvs:
+The project uses separate venvs:
 
 ```text
 .venv-tools  project checks, docs inventory, tests
 .venv-gvhmr  GVHMR only
 .venv-gmr    GMR, MuJoCo, Mink, retargeting
 .venv-isaac  motion validation and Isaac replay wrapper
+.venv-semantic  optional Semantic-Gesticulator runtime
 ```
 
 Conda-style environments are intentionally avoided so GVHMR, GMR, Isaac wrapper code, and project tooling do not leak dependencies into each other.
@@ -68,10 +69,11 @@ Conda-style environments are intentionally avoided so GVHMR, GMR, Isaac wrapper 
 - Input videos: `data/input_videos/`
 - GVHMR checkpoints: `third_party/GVHMR/inputs/checkpoints/`
 - GMR SMPL-X body models: `third_party/GMR/assets/body_models/smplx/`
+- Optional Semantic-Gesticulator checkout: `third_party/Semantic-Gesticulator-Official/`
 - Generated GMR robot model: `build/mindbot_gmr/`
 - Outputs: `outputs/<video_name>/`
 
-Do not commit SMPL/SMPL-X models, checkpoints, videos, generated motions, recordings, or `.env`.
+Do not commit SMPL/SMPL-X models, checkpoints, Semantic-Gesticulator models, videos, generated motions, recordings, or `.env`.
 
 ## Run In Stages
 
@@ -99,6 +101,28 @@ Isaac replay:
   --motion outputs/test/mindbot_motion.npz
 ```
 
+BVH from Semantic-Gesticulator:
+
+```bash
+./scripts/retarget_bvh_to_mindbot.sh \
+  --bvh outputs/story/semantic_gesticulator/story/story_semantic_results.bvh \
+  --output-dir outputs/story
+```
+
+Story or language to robot gesture:
+
+```bash
+./scripts/setup_semantic_gesticulator.sh
+./.venv-tools/bin/python scripts/check_semantic_gesticulator_assets.py
+
+./scripts/run_semantic_story_pipeline.sh \
+  --text "Hello everyone. Let me explain how this robot works." \
+  --output-dir outputs/story \
+  --replay
+```
+
+See `docs/semantic_gesticulator.md` for model download locations, text-to-speech behavior, and axis tuning.
+
 Slow loop with recording:
 
 ```bash
@@ -120,6 +144,8 @@ Slow loop with recording:
 - `fps`
 - `source_video`
 - `source_gvhmr_file`
+- `source_motion_file`
+- `source_motion_kind`
 - `robot_model`
 - `gmr_commit`
 - `gvhmr_commit`

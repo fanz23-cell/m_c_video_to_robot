@@ -17,6 +17,7 @@ third_party/GVHMR/inputs/checkpoints/
 third_party/GVHMR/outputs/
 third_party/GMR/videos/
 third_party/GMR/retargeting_data/
+third_party/Semantic-Gesticulator-Official/
 
 *.pt
 *.pth

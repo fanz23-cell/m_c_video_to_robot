@@ -6,6 +6,13 @@ The pipeline is intentionally split by dependency boundary:
 2. `retarget_to_mindbot.sh` runs official GMR in `.venv-gmr`, dynamically registers `mindbot_dual_arm`, and writes a named joint trajectory.
 3. `replay_in_isaac.sh` validates the motion in `.venv-isaac`, then launches the official Isaac Lab environment with this repository's replay script.
 
+The alternate story path uses Semantic-Gesticulator as the front-end motion source:
+
+1. `run_semantic_story_pipeline.sh` converts text/story to WAV if needed, then runs Semantic-Gesticulator in `.venv-semantic`.
+2. Semantic-Gesticulator writes BVH.
+3. `retarget_bvh_to_mindbot.sh` converts BVH to the same `human_frames` contract and calls the same MindBot GMR retargeting core.
+4. `replay_in_isaac.sh` replays the resulting `mindbot_motion.npz`.
+
 The official Isaac environment is read-only from this project. We use its existing URDF, launcher, registered tasks, and `mindbot_isaac_sim.interfaces.make_joint_position_action` helper.
 
 ## Data Contracts
@@ -14,6 +21,12 @@ GVHMR output:
 
 ```text
 outputs/<video>/gvhmr/<video>/hmr4d_results.pt
+```
+
+Semantic-Gesticulator output:
+
+```text
+outputs/<story>/semantic_gesticulator/<story>/<story>_semantic_results.bvh
 ```
 
 MindBot motion output:

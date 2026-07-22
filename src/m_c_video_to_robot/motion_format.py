@@ -19,11 +19,13 @@ def write_motion_bundle(
     timestamps: np.ndarray,
     fps: float,
     source_video: str | Path | None,
-    source_gvhmr_file: str | Path,
     robot_model: str | Path,
     gmr_commit: str,
     gvhmr_commit: str,
     report: dict[str, Any],
+    source_gvhmr_file: str | Path | None = None,
+    source_motion_file: str | Path | None = None,
+    source_motion_kind: str = "",
 ) -> dict[str, Path]:
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -32,6 +34,9 @@ def write_motion_bundle(
     report_path = out / "retarget_report.json"
 
     source_video_str = "" if source_video is None else relative_to_repo(source_video)
+    source_gvhmr_str = "" if source_gvhmr_file is None else relative_to_repo(source_gvhmr_file)
+    source_motion = source_motion_file if source_motion_file is not None else source_gvhmr_file
+    source_motion_str = "" if source_motion is None else relative_to_repo(source_motion)
     np.savez(
         motion_path,
         joint_names=np.asarray(joint_names, dtype=str),
@@ -40,7 +45,9 @@ def write_motion_bundle(
         timestamps=np.asarray(timestamps, dtype=float),
         fps=np.asarray(float(fps), dtype=float),
         source_video=np.asarray(source_video_str, dtype=str),
-        source_gvhmr_file=np.asarray(relative_to_repo(source_gvhmr_file), dtype=str),
+        source_gvhmr_file=np.asarray(source_gvhmr_str, dtype=str),
+        source_motion_file=np.asarray(source_motion_str, dtype=str),
+        source_motion_kind=np.asarray(source_motion_kind, dtype=str),
         robot_model=np.asarray(relative_to_repo(robot_model), dtype=str),
         gmr_commit=np.asarray(gmr_commit, dtype=str),
         gvhmr_commit=np.asarray(gvhmr_commit, dtype=str),
@@ -72,6 +79,8 @@ def load_motion(path: str | Path) -> dict[str, Any]:
         "fps": float(np.asarray(data["fps"]).item()),
         "source_video": str(np.asarray(data["source_video"]).item()) if "source_video" in data else "",
         "source_gvhmr_file": str(np.asarray(data["source_gvhmr_file"]).item()) if "source_gvhmr_file" in data else "",
+        "source_motion_file": str(np.asarray(data["source_motion_file"]).item()) if "source_motion_file" in data else "",
+        "source_motion_kind": str(np.asarray(data["source_motion_kind"]).item()) if "source_motion_kind" in data else "",
         "robot_model": str(np.asarray(data["robot_model"]).item()) if "robot_model" in data else "",
         "gmr_commit": str(np.asarray(data["gmr_commit"]).item()) if "gmr_commit" in data else "",
         "gvhmr_commit": str(np.asarray(data["gvhmr_commit"]).item()) if "gvhmr_commit" in data else "",
