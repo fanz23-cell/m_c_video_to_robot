@@ -4,6 +4,16 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${REPO_ROOT}"
 
+if [ "${TERM:-dumb}" = "dumb" ]; then
+  export TERM=xterm-256color
+fi
+if [ -z "${ISAACLAB_PATH:-}" ] && [ -f "${HOME}/Isaac Sim/IsaacLab/isaaclab.sh" ]; then
+  export ISAACLAB_PATH="${HOME}/Isaac Sim/IsaacLab"
+fi
+if [ -z "${VIRTUAL_ENV:-}" ] && [ -z "${CONDA_PREFIX:-}" ] && [ -x "${HOME}/miniforge3/envs/env_isaaclab/bin/python" ]; then
+  export CONDA_PREFIX="${HOME}/miniforge3/envs/env_isaaclab"
+fi
+
 motion=""
 extra_args=()
 
