@@ -27,7 +27,7 @@ while [ "$#" -gt 0 ]; do
       extra_args+=("--robot" "$2")
       shift 2
       ;;
-    --start-frame|--end-frame|--target-fps|--smplx-body-models)
+    --start-frame|--end-frame|--target-fps|--smplx-body-models|--waist-mode)
       extra_args+=("$1" "$2")
       shift 2
       ;;

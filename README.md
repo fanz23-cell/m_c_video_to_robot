@@ -132,7 +132,7 @@ left_arm_joint_1 ... left_arm_joint_6
 right_arm_joint_1 ... right_arm_joint_6
 ```
 
-Wheel/base commands are not emitted. The waist is driven only by SMPL-X `spine3` yaw, unwrapped and clamped to the real waist limit.
+Wheel/base commands are not emitted. The waist is locked at `0.0` rad by default because monocular GVHMR global yaw can jump on fixed-base robots. Use `--waist-mode spine_yaw` only when the source video clearly needs body turning.
 
 ## Mapping And Smoothing
 

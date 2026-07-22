@@ -8,6 +8,7 @@ video=""
 static_camera=0
 record=0
 robot="mindbot_dual_arm"
+waist_mode="locked"
 replay_args=()
 
 while [ "$#" -gt 0 ]; do
@@ -22,6 +23,10 @@ while [ "$#" -gt 0 ]; do
       ;;
     --robot)
       robot="$2"
+      shift 2
+      ;;
+    --waist-mode)
+      waist_mode="$2"
       shift 2
       ;;
     --record)
@@ -63,7 +68,7 @@ gvhmr_output="$(./scripts/extract_human_motion.sh "${extract_args[@]}" | tail -n
 
 stem="$(basename "${video}")"
 stem="${stem%.*}"
-./scripts/retarget_to_mindbot.sh --gvhmr-output "${gvhmr_output}" --output-dir "outputs/${stem}" --source-video "${video}" --robot "${robot}"
+./scripts/retarget_to_mindbot.sh --gvhmr-output "${gvhmr_output}" --output-dir "outputs/${stem}" --source-video "${video}" --robot "${robot}" --waist-mode "${waist_mode}"
 
 motion="outputs/${stem}/mindbot_motion.npz"
 if [ "${record}" -eq 1 ]; then

@@ -106,12 +106,17 @@ def retarget_gvhmr_to_mindbot(args: argparse.Namespace) -> dict[str, Path]:
 
     raw = np.asarray(raw_rows, dtype=float)
     waist_index = joint_names.index("waist_joint")
-    raw[:, waist_index] = extract_yaw_from_human_frames(
-        human_frames,
-        "spine3",
-        (limits["waist_joint"].lower, limits["waist_joint"].upper),
-        zero_initial=True,
-    )
+    if args.waist_mode == "locked":
+        raw[:, waist_index] = 0.0
+        waist_note = "waist_joint is locked at 0.0 rad; monocular GVHMR global yaw is unstable for this fixed-base waist."
+    else:
+        raw[:, waist_index] = extract_yaw_from_human_frames(
+            human_frames,
+            "spine3",
+            (limits["waist_joint"].lower, limits["waist_joint"].upper),
+            zero_initial=True,
+        )
+        waist_note = "waist_joint is overridden from zero-initialized SMPL-X spine3 yaw, then unwrapped and clamped."
     timestamps = np.arange(len(raw), dtype=float) / float(aligned_fps)
     config = _load_filter_config(repo_path("configs", "filters.yaml"))
     filtered = filter_joint_trajectory(raw, timestamps, lower, upper, velocity, default_positions, config)
@@ -133,12 +138,13 @@ def retarget_gvhmr_to_mindbot(args: argparse.Namespace) -> dict[str, Path]:
         "frames": {"start": start, "end": end, "count": len(raw)},
         "fps": float(aligned_fps),
         "actual_human_height": float(actual_human_height),
+        "waist_mode": args.waist_mode,
         "mindbot_frame_transform": transform_report.to_json(),
         "gmr_dof_order": retarget.robot_dof_names,
         "notes": [
             "GVHMR/SMPL-X frames are converted into the fixed-base MindBot arm workspace before GMR IK.",
             "GMR height scaling is disabled after workspace normalization.",
-            "waist_joint is overridden from zero-initialized SMPL-X spine3 yaw, then unwrapped and clamped.",
+            waist_note,
             "wheel/base translation commands are not emitted in this stage.",
         ],
     }
@@ -188,6 +194,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--end-frame", type=int, default=None)
     parser.add_argument("--smplx-body-models", type=Path, default=None)
     parser.add_argument("--rebuild-model", action="store_true")
+    parser.add_argument(
+        "--waist-mode",
+        choices=["locked", "spine_yaw"],
+        default="locked",
+        help="How to drive waist_joint. The default locks the waist because single-camera global yaw is noisy.",
+    )
     parser.add_argument("--preview", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--verbose", action="store_true")
     return parser.parse_args()

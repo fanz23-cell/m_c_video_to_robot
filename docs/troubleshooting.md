@@ -27,7 +27,9 @@ Reduce wrist orientation weight first, then increase elbow position weight. For 
 
 ## Waist Snaps Near 180 Degrees
 
-The retargeter extracts `spine3` yaw with `numpy.unwrap` and clamps to `waist_joint` limits. If a source video still snaps, inspect `raw_joint_positions` in `mindbot_motion.npz` and lower the smoothing window in `configs/filters.yaml`.
+The retargeter locks `waist_joint` at `0.0` rad by default. Single-camera GVHMR global yaw can jump when the person turns, the camera moves, or depth is ambiguous, and a fixed-base robot waist makes those jumps very visible.
+
+Use `--waist-mode spine_yaw` only for videos where deliberate body turning matters. If that mode snaps, inspect `raw_joint_positions` in `mindbot_motion.npz` and lower the smoothing window in `configs/filters.yaml`.
 
 ## Isaac Launcher Fails
 
