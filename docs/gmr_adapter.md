@@ -34,18 +34,21 @@ build/mindbot_gmr/mindbot.xml
 
 The build script keeps base, waist, left arm, right arm, and TCP links. It removes the RealSense branch from the GMR IK model and does not change waist or arm origins, axes, limits, or link transforms.
 
-The first mapping uses:
+The MindBot mapping uses:
 
 ```text
-pelvis, spine3, left_shoulder, left_elbow, left_wrist,
+spine3, left_shoulder, left_elbow, left_wrist,
 right_shoulder, right_elbow, right_wrist
 ```
 
 to target:
 
 ```text
-waist_link, left_arm_link_1, left_arm_link_3, left_arm_link_6,
-right_arm_link_1, right_arm_link_3, right_arm_link_6
+waist_link,
+left_arm_link_1, left_arm_link_4, left_arm_tcp,
+right_arm_link_1, right_arm_link_4, right_arm_tcp
 ```
 
-These links were selected after reading the official URDF chain and are documented in `docs/official_environment_inventory.md`. The generated MuJoCo XML folds the fixed base and fixed TCP bodies, so the low-weight pelvis/root offset task uses the MuJoCo `world` body and wrist/end-effector tasks use arm link 6; the Isaac replay still uses the official environment and named joints.
+These links were selected after reading the official URDF chain and are documented in `docs/official_environment_inventory.md`. GVHMR/SMPL-X frames are first converted into the fixed-base MindBot arm workspace: human lateral X becomes robot lateral Y, shoulders are anchored to the robot shoulder frames, and upper-arm/forearm targets are scaled to the robot segment lengths. The generated MuJoCo XML normally folds fixed TCP links, so the build step adds massless `left_arm_tcp` and `right_arm_tcp` task frames back under arm link 6.
+
+The GMR IK config uses position-dominant constraints. Shoulder targets are weak anchors, while elbow and TCP targets carry the main costs. Wrist orientation costs are intentionally zero in this stage because a monocular human wrist orientation is noisy and can overconstrain the MindBot 6-DoF arms.

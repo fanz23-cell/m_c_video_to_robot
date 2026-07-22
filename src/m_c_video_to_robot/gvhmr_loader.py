@@ -22,7 +22,13 @@ def find_gvhmr_result(output_root: str | Path, video_stem: str | None = None) ->
     raise FileNotFoundError(f"Could not find hmr4d_results.pt under {root}")
 
 
-def extract_yaw_from_human_frames(frames: list[dict[str, Any]], body_name: str, limits: tuple[float, float]) -> np.ndarray:
+def extract_yaw_from_human_frames(
+    frames: list[dict[str, Any]],
+    body_name: str,
+    limits: tuple[float, float],
+    *,
+    zero_initial: bool = False,
+) -> np.ndarray:
     """Extract global yaw from a SMPL-X body quaternion in wxyz order."""
 
     yaw_values: list[float] = []
@@ -34,4 +40,6 @@ def extract_yaw_from_human_frames(frames: list[dict[str, Any]], body_name: str, 
         yaw = Rotation.from_quat(quat_xyzw).as_euler("zyx", degrees=False)[0]
         yaw_values.append(float(yaw))
     yaw_series = np.unwrap(np.asarray(yaw_values, dtype=float))
+    if zero_initial and len(yaw_series) > 0:
+        yaw_series = yaw_series - yaw_series[0]
     return np.clip(yaw_series, limits[0], limits[1])

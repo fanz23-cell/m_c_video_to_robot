@@ -11,6 +11,7 @@ import yaml
 
 from .filters import filter_joint_trajectory
 from .gvhmr_loader import extract_yaw_from_human_frames
+from .human_frame_transform import transform_human_frames_to_mindbot_workspace
 from .limits import limits_arrays, validate_motion
 from .motion_format import write_motion_bundle
 from .paths import relative_to_repo, repo_path
@@ -42,11 +43,21 @@ def _qpos_joint_value(model, qpos: np.ndarray, joint_name: str) -> float:
 
 def _ensure_model_exists(force: bool = False) -> Path:
     model_path = generated_model_path(prefer_xml=True)
-    if model_path.exists() and not force:
+    if model_path.exists() and not force and _model_has_required_bodies(model_path, ("left_arm_tcp", "right_arm_tcp")):
         return model_path
     from .build_model import build_model
 
-    return build_model(force=force)
+    return build_model(force=True)
+
+
+def _model_has_required_bodies(model_path: Path, body_names: tuple[str, ...]) -> bool:
+    try:
+        import mujoco as mj
+
+        model = mj.MjModel.from_xml_path(str(model_path))
+    except Exception:
+        return False
+    return all(mj.mj_name2id(model, mj.mjtObj.mjOBJ_BODY, name) >= 0 for name in body_names)
 
 
 def retarget_gvhmr_to_mindbot(args: argparse.Namespace) -> dict[str, Path]:
@@ -79,9 +90,10 @@ def retarget_gvhmr_to_mindbot(args: argparse.Namespace) -> dict[str, Path]:
     if start >= end:
         raise ValueError(f"Invalid frame range: start={start}, end={end}")
     human_frames = human_frames[start:end]
+    human_frames, transform_report = transform_human_frames_to_mindbot_workspace(human_frames, robot_model)
 
     retarget = GMR(
-        actual_human_height=actual_human_height,
+        actual_human_height=None,
         src_human="smplx",
         tgt_robot=ROBOT_NAME,
         verbose=args.verbose,
@@ -98,6 +110,7 @@ def retarget_gvhmr_to_mindbot(args: argparse.Namespace) -> dict[str, Path]:
         human_frames,
         "spine3",
         (limits["waist_joint"].lower, limits["waist_joint"].upper),
+        zero_initial=True,
     )
     timestamps = np.arange(len(raw), dtype=float) / float(aligned_fps)
     config = _load_filter_config(repo_path("configs", "filters.yaml"))
@@ -120,9 +133,12 @@ def retarget_gvhmr_to_mindbot(args: argparse.Namespace) -> dict[str, Path]:
         "frames": {"start": start, "end": end, "count": len(raw)},
         "fps": float(aligned_fps),
         "actual_human_height": float(actual_human_height),
+        "mindbot_frame_transform": transform_report.to_json(),
         "gmr_dof_order": retarget.robot_dof_names,
         "notes": [
-            "waist_joint is overridden from SMPL-X spine3 global yaw only, then unwrapped and clamped.",
+            "GVHMR/SMPL-X frames are converted into the fixed-base MindBot arm workspace before GMR IK.",
+            "GMR height scaling is disabled after workspace normalization.",
+            "waist_joint is overridden from zero-initialized SMPL-X spine3 yaw, then unwrapped and clamped.",
             "wheel/base translation commands are not emitted in this stage.",
         ],
     }
